@@ -4,12 +4,16 @@ import EventsList from '../components/EventsList';
 
 function EventsPage() {
 
-   const fetchedEvents = useLoaderData(); // since we defined resData.events in loader function inside EventsData element in Router
-   const events = fetchedEvents.events;
+   const data = useLoaderData(); // since we defined resData.events in loader function inside EventsData element in Router
+   const events = data.events;
+
+   if(data.isError){
+    return <p>{data.message}</p>
+   }
 
   return (
     <>
-      <EventsList events={fetchedEvents} />
+      <EventsList events={events} />
     </>
   );
 }
@@ -21,8 +25,11 @@ export async function loader() {
    const response = await fetch('http://localhost:8080/events');
 
    if(!response.ok){
-     // incorrect case
+     throw new Response(JSON.stringify({
+        message: 'Could not fetch events!'}), {
+        status: 500,
+      });
    }else{
-     return response;
-   };
+     return response; // response returns Promise obj
+   }
 };
