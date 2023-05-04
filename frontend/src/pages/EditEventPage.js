@@ -1,4 +1,4 @@
-import { useParams, useLoaderData, useRouteLoaderData } from "react-router-dom";
+import { useParams, useRouteLoaderData } from "react-router-dom";
 import EventForm from '../components/EventForm';
 
 function EditEventPage() {
@@ -12,10 +12,12 @@ function EditEventPage() {
          <h1>Edit event page!</h1>
          <p> You are currently editing event: {passedParam.eventId}</p>
          
-         <EventForm event={data.event}/>
+         <EventForm method='patch' event={data.event}/>
       </>
    );
 
 };
 
 export default EditEventPage;
+
+
