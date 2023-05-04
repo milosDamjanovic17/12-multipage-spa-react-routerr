@@ -1,13 +1,25 @@
-import { json, redirect, useRouteLoaderData } from "react-router-dom";
+import { Await, json, redirect, useRouteLoaderData, defer } from "react-router-dom";
 import EventItem from "../components/EventItem";
+import EventsList from "../components/EventsList";
+import { Suspense } from "react";
 
 const EventDetailPage = () => {
 
-   const data = useRouteLoaderData('event-detail');
+   const {event, events} = useRouteLoaderData('event-detail');
 
    return(
       <>
-         <EventItem event={data.event} />
+         <Suspense fallback={<p style={{textAlign: "center"}}>Loading.......</p>}>
+            <Await resolve={event}>
+               {(loadedEvent) => <EventItem event = {loadedEvent}/>}
+            </Await>
+         </Suspense>
+
+         <Suspense fallback={<p style={{textAlign: "center"}}>Loading.......</p>}>  
+            <Await resolve={events}>
+               {(loadedEvents) => <EventsList events = {loadedEvents}/>}
+            </Await>
+         </Suspense>
       </>
    );
 
@@ -16,13 +28,10 @@ const EventDetailPage = () => {
 
 export default EventDetailPage;
 
-// create a new loader function to load all data related to selected event item
+// load one event by ID
+async function loadEvent(eventId) {
 
-export async function loader({request, params}) {
-
-   const id = params.eventId; // => via params we can access parameters that are passed to component, in this case /events/:eventId
-
-   const response = await fetch('http://localhost:8080/events/' + id);
+   const response = await fetch('http://localhost:8080/events/' + eventId);
 
    if(!response.ok){
       throw json({message: 'Could not fetch details for selected event'},
@@ -30,9 +39,43 @@ export async function loader({request, params}) {
       )
    }else{
       
-      return response;
+      const resData = await response.json();
+      return resData.event;
    }
 
+}
+
+// fetch the data with async function
+export async function loadEvents(){
+
+   const response = await fetch('http://localhost:8080/events');
+ 
+   if(!response.ok){
+    //  throw new Response(JSON.stringify({
+    //     message: 'Could not fetch events!'}), {
+    //     status: 500,
+    //   });
+    throw json({message: 'Could not fetch events'},
+      {status: 500},
+    );
+   }else{
+     const resData = await response.json();
+     return resData.events;
+   }
+ 
+ }
+
+
+// create a new loader function to load all data related to selected event item
+export async function loader({request, params}) {
+
+   const id = params.eventId; // => via params we can access parameters that are passed to component, in this case /events/:eventId
+
+
+   return defer({
+      event: await loadEvent(id),
+      events: loadEvents()
+   })
 }
 
 

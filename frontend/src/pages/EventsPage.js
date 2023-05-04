@@ -23,6 +23,7 @@ function EventsPage() {
 
 export default EventsPage;
 
+// fetch the data with async function
 export async function loadEvents(){
 
   const response = await fetch('http://localhost:8080/events');
@@ -41,8 +42,7 @@ export async function loadEvents(){
   }
 
 }
-
-// fetch the data with async function
+// defer collected data
 export function loader() {
   return defer({
     events: loadEvents(),
